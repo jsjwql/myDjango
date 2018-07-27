@@ -1,0 +1,81 @@
+<!-- index.html (mshop project) -->
+{% extends "base.html" %}
+{% block title %}迷你小电商{% endblock %}
+{% block content %}
+{% load mshop_extras %}     <!-- 导入 mshop_extras 中的自定义标签 -->
+<div class='container'>
+    {{today}}
+{% for message in messages %}
+    <div class='alert alert-{{message.tags}}'>{{ message }}</div>
+{% endfor %}
+    <div class='row'>
+        <div class='col-md-12'>
+            <div class='panel panel-default'>
+                <div class='panel-heading' align=center>
+                    <h3>欢迎光临迷你小电商<br>【{{ category.name | default:"全部产品" }}】</h3>
+                    {% if user.is_authenticated %}
+                        {% if user.socialaccount_set.all.0.extra_data.uname %}
+                            <!-- 获取用户个人姓名 -->
+                            {{user.socialaccount_set.all.0.extra_data.uname}}<br/>
+                            <!-- 获取个人的大头像照片 -->
+                            <img src='{{user.socialaccount_set.all.0.get_avatar_url}}' width='100'>
+                        {% else %}
+                            Welcome: {{ user.username }}
+                        {% endif %}
+                    {% else %}
+                        <p>欢迎使用 百度 或 微博 注册/登录你的账号，用于购买本站优惠商品。</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class='row'>
+            <button class='btn btn-info'>
+                目前是第{{ products.number }}页</a>
+            </button>
+        {% if products.has_previous %}
+            <button class='btn btn-info'>
+                <a href='?p={{ products.previous_page_number }}'>上一页</a>
+            </button>
+        {% endif %}
+        {% if products.has_next %}
+            <button class='btn btn-info'>
+                <a href='?p={{ products.next_page_number }}'>下一页</a>
+            </button>
+        {% endif %}
+    </div>
+    {% load account %}
+    {% for product in products %}
+        {% cycle '<div class="row">' '' '' '' %}
+        <div class='col-xs-3 col-sm-3 col-md-3'>
+            <div class='thumbnail'>
+                <img src='{{product.image.url}}'>
+                <div class='caption'>
+                    <h4><a href="{% url "product-url" product.id %}">{{ product.name }}</a> </h4>
+                    <p>￥{{product.price }}</p>
+                    <p>库存：{{product.stock}}</p>
+                    <p>{{ product.description }}</p>
+                    {% if user.is_authenticated %}
+                    <button class='btn btn-info' {{ product.stock | yesno:",disabled"}}>
+                        <a href='{% url "additem-url" product.id 1 %}'>放入购物车</a>
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        {% cycle '' '' '' '</div>'%}
+    {% empty %}
+        <div class='row'>
+            <div class='col-sm-12' align='center'>
+                <h3>此分类目前没有任何商品</h3>
+            </div>
+        </div>
+    {% endfor %}
+{#    {% if cart.count > 0 %}#}
+{#        <em>目前购物车中共有 {{ cart.count }} 项产品</em>#}
+{#    {% else %}#}
+{#    <p>此购物车为空</p>#}
+{#    {% endif %}#}
+</div>
+{% endblock %}
